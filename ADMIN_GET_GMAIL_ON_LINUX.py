@@ -199,7 +199,7 @@ def getgmail(gmailList):
                 bryan = build('gmail', 'v1', credentials=credentials)
                 unread_msgs = bryan.users().messages().list(userId=user_id, maxResults=maxResults).execute()  # , maxResults=1
                 # We get a dictonary. Now reading values for the key 'messages'
-                mssg_list = unread_msgs['messages']
+                mssg_list = unread_msgs.get('messages',{})
                 NormalGmailAddressList.append(user_id)
             except Exception as e:
                 logger.info('GmailId:' + user_id + 'has error')
@@ -208,7 +208,7 @@ def getgmail(gmailList):
 
             # print("Total unread messages in inbox: ", str(len(mssg_list)))
             for mid in mssg_list:
-                m_id = mid['id']  # '16859c3619738d4d'
+                m_id = mid.get('id','')  # '16859c3619738d4d'
                 try:
                     message = bryan.users().messages().get(userId=user_id, id=m_id).execute()  # fetch the message using API
                 except Exception as e:
@@ -218,10 +218,10 @@ def getgmail(gmailList):
                 temp_dict = {}
                 temp_dict['gmailid'] = removeBlank(user_id)  # xx@xx
                 # temp_dict = dict(temp_dict,message[["id","threadId","labelIds","snippet","historyId","internalDate"]])
-                temp_dict['id'] = removeBlank(message["id"])
-                temp_dict['threadId'] = removeBlank(message["threadId"])
-                temp_dict['labelIds'] = removeBlank(message["labelIds"])
-                for lab in list(message["labelIds"]):
+                temp_dict['id'] = removeBlank(message.get("id",''))
+                temp_dict['threadId'] = removeBlank(message.get("threadId",''))
+                temp_dict['labelIds'] = removeBlank(message.get("labelIds",''))
+                for lab in list(message.get("labelIds",'')):
                     if lab == 'DRAFT':
                         draft += 1
                         break
@@ -232,35 +232,35 @@ def getgmail(gmailList):
                         num_unread += 1
                         break
 
-                temp_dict['snippet'] = removeBlank(message["snippet"])
-                temp_dict['historyId'] = removeBlank(message["historyId"])
-                temp_dict['internalDate'] = removeBlank(message["internalDate"])
+                temp_dict['snippet'] = removeBlank(message.get("snippet",''))
+                temp_dict['historyId'] = removeBlank(message.get("historyId",''))
+                temp_dict['internalDate'] = removeBlank(message.get("internalDate",''))
 
-                payld = message["payload"]
-                headr = payld['headers']
+                payld = message.get("payload",{})
+                headr = payld.get('headers',{})
                 for one in headr:  # getting the Subject
-                    if one['name'] == "From":
-                        temp_dict["from"] = removeBlank(one['value'])
-                    elif one['name'] == "To":
-                        temp_dict["to"] = removeBlank(one['value'])
-                    elif one['name'] == 'Cc':
-                        temp_dict['cc'] = removeBlank(one['value'])
-                    elif one['name'] == 'Bcc':
-                        temp_dict['bcc'] = removeBlank(one['value'])
-                    elif one['name'] == 'Subject':
-                        temp_dict['subject'] = removeBlank(one['value'])
-                    elif one['name'] == 'Date':
-                        msg_date = one['value']
-                        date_parse = (parser.parse(msg_date))
-                        m_date = (date_parse.date())
+                    if one.get('name','') == "From":
+                        temp_dict["from"] = removeBlank(one.get('value',''))
+                    elif one.get('name','') == "To":
+                        temp_dict["to"] = removeBlank(one.get('value',''))
+                    elif one.get('name','') == 'Cc':
+                        temp_dict['cc'] = removeBlank(one.get('value',''))
+                    elif one.get('name','') == 'Bcc':
+                        temp_dict['bcc'] = removeBlank(one.get('value',''))
+                    elif one.get('name','') == 'Subject':
+                        temp_dict['subject'] = removeBlank(one.get('value',''))
+                    elif one.get('name','') == 'Date':
+                        msg_date = one.get('value','')
+                        date_parse = parser.parse(msg_date)
+                        m_date = date_parse.date()
                         temp_dict['Date'] = removeBlank(m_date)
 
-                    parts = payld.get('parts')
-                    body = payld.get('body')
+                    parts = payld.get('parts',{})
+                    body = payld.get('body',{})
                     if parts:
                         filename = ''
                         for par in parts:
-                            filename = filename + par.get('filename') + ','
+                            filename = filename + par.get('filename','') + ','
                         filename = filename.strip(',')
                         if not filename.strip(','):
                             filename = '_'
@@ -268,9 +268,9 @@ def getgmail(gmailList):
 
                         # content
                         if parts[0].get('parts'):
-                            content = parts[0]['parts'][0].get('body').get('data')
+                            content = parts[0]['parts'][0].get('body',{}).get('data','')
                         else:
-                            content = parts[0].get('body').get('data')
+                            content = parts[0].get('body',{}).get('data','')
                         if content:
                             content = content.replace("-", "+")
                             content = content.replace("_", "/")
@@ -278,7 +278,7 @@ def getgmail(gmailList):
                             content = str(content, 'utf-8')
                             temp_dict['content'] = removeBlank(content)
                     elif body:
-                        content = body.get('data')
+                        content = body.get('data','')
                         if content:
                             content = content.replace("-", "+")
                             content = content.replace("_", "/")
