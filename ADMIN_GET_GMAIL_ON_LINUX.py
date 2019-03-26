@@ -251,8 +251,11 @@ def getgmail(gmailList):
                         temp_dict['subject'] = removeBlank(one.get('value',''))
                     elif one.get('name','') == 'Date':
                         msg_date = one.get('value','')
-                        date_parse = parser.parse(msg_date)
-                        m_date = date_parse.date()
+                        try:
+                            date_parse = parser.parse(msg_date)
+                            m_date = date_parse.date()
+                        except Exception as ex:
+                            m_date='_'
                         temp_dict['Date'] = removeBlank(m_date)
 
                     parts = payld.get('parts',{})
