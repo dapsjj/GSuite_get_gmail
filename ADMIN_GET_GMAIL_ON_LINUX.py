@@ -156,22 +156,22 @@ def getgmail(gmailList):
     :return: 要保存成文本的List
 
     从根节点到分支节点(叶子节点)的全部元素的说明,空值用“_”代替
-    共15个元素:
+    共16个元素:
+    邮箱地址      gmailid
     邮件id        id                  "id": "16859c3619738d4d",
     历史邮件id    threadid            "threadId": "16859c3619738d4d",
     状态标签      labelids            "labelIds": ["IMPORTANT","CATEGORY_PERSONAL","INBOX"],
     内容片断      snippet             "snippet": "好天气啊！",
     历史信息id    historyid           "historyId": "15135",
+    时间戳        internaldate        "internalDate": "1547694199000",
     送信者        from                "name": "From","value": "\"宋家军\" \u003cdapsjj@qq.com\u003e"
     受件者        to                  "name": "To","value": "10113982songjiajun \u003c10113982songjiajun@gmail.com\u003e"
     抄送人        cc                  "name": "Cc","value": "\"宋家军\" \u003cdapsjj@qq.com\u003e"
     密送人        bcc                 "value": "\"宋家军\" \u003cdapsjj@qq.com\u003e, 103762438@qq.com"
     标题          subject             "name": "Subject","value": "天气情况测试"
-    附件名称      filename            "partId": "1"，"filename": "外部回复.txt"   "partId": "2","filename": "454.txt",
     时间          date                "name": "Date","value": "Thu, 17 Jan 2019 11:03:19 +0800"
-    时间戳        internaldate        "internalDate": "1547694199000",
-    邮件大小      sizeestimate        "sizeEstimate": 4644
-    所有信息      all
+    附件名称      filename            "partId": "1"，"filename": "外部回复.txt"   "partId": "2","filename": "454.txt",
+    邮件内容      content
     '''
 
     try:
