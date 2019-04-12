@@ -196,10 +196,11 @@ def getgmail(gmailList):
                 credentials = ServiceAccountCredentials.from_p12_keyfile(SERVICE_ACCOUNT_EMAIL, PK12_FILE,PK12_PASSWORD, scopes=GmailSCOPES)
                 credentials = credentials.create_delegated(user_id)
                 bryan = build('gmail', 'v1', credentials=credentials)
-                unread_msgs = bryan.users().messages().list(userId=user_id, maxResults=maxResults,q='after:2019/03/18 before:2019/03/20').execute()  # , maxResults=1
+                unread_msgs = bryan.users().messages().list(userId=user_id, maxResults=maxResults,q='after:2019/04/02').execute()  # , maxResults=1
                 # We get a dictonary. Now reading values for the key 'messages'
-                mssg_list = unread_msgs.get('messages',{})[:50] #取前50人
-                print(mssg_list)
+                # mssg_list = unread_msgs.get('messages',{})[:50] #取前50人
+                mssg_list = unread_msgs.get('messages',{})
+                # print(mssg_list)
                 NormalGmailAddressList.append(user_id)
             except Exception as e:
                 logger.info('GmailId:' + user_id + 'has error')
