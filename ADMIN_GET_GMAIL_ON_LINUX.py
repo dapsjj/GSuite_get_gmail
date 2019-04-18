@@ -119,7 +119,7 @@ def removeBlank(MyString):
     :return: 去掉空白后的字符串
     '''
     try:
-        MyString = re.sub('[\s+]', '', str(MyString)).replace('\n','-t')
+        MyString = re.sub('[\s+]', '', str(MyString)).replace('\n','-t').replace('\t','').strip()
         if (not MyString) or MyString == 'null':
             MyString = '_'
         return MyString
@@ -182,6 +182,12 @@ def getgmail(gmailList):
         gailnum = []
         AbnormalGmailAddressList = []
         NormalGmailAddressList = []
+        #20190412 宋家軍添加 begin
+        after_date = datetime.datetime.now() + datetime.timedelta(days=-2)#2 days ago
+        after_date = after_date.strftime('%Y/%m/%d')
+        before_date = datetime.datetime.now() + datetime.timedelta(days=-1)# 1 days ago
+        before_date = before_date.strftime('%Y/%m/%d')
+        #20190412 宋家軍添加 end
         for user_id in gmailList:
             # print(user_id)
 
@@ -196,9 +202,10 @@ def getgmail(gmailList):
                 credentials = ServiceAccountCredentials.from_p12_keyfile(SERVICE_ACCOUNT_EMAIL, PK12_FILE,PK12_PASSWORD, scopes=GmailSCOPES)
                 credentials = credentials.create_delegated(user_id)
                 bryan = build('gmail', 'v1', credentials=credentials)
-                unread_msgs = bryan.users().messages().list(userId=user_id, maxResults=maxResults,q='after:2019/04/02').execute()  # , maxResults=1
+                # unread_msgs = bryan.users().messages().list(userId=user_id, maxResults=maxResults,q='after:2019/04/11').execute()
+                unread_msgs = bryan.users().messages().list(userId=user_id, maxResults=maxResults,q='after:'+after_date+' before:'+before_date).execute()
                 # We get a dictonary. Now reading values for the key 'messages'
-                # mssg_list = unread_msgs.get('messages',{})[:50] #取前50人
+                # mssg_list = unread_msgs.get('messages',{})[:10] #取前10人
                 mssg_list = unread_msgs.get('messages',{})
                 # print(mssg_list)
                 NormalGmailAddressList.append(user_id)
@@ -219,10 +226,10 @@ def getgmail(gmailList):
                 temp_dict = {}
                 temp_dict['gmailid'] = removeBlank(user_id)  # xx@xx
                 # temp_dict = dict(temp_dict,message[["id","threadId","labelIds","snippet","historyId","internalDate"]])
-                temp_dict['id'] = removeBlank(message.get("id",''))
-                temp_dict['threadId'] = removeBlank(message.get("threadId",''))
-                temp_dict['labelIds'] = removeBlank(message.get("labelIds",''))
-                for lab in list(message.get("labelIds",'')):
+                temp_dict['id'] = removeBlank(message.get("id",'_'))
+                temp_dict['threadId'] = removeBlank(message.get("threadId",'_'))
+                temp_dict['labelIds'] = removeBlank(message.get("labelIds",'_'))
+                for lab in list(message.get("labelIds",'_')):
                     if lab == 'DRAFT':
                         draft += 1
                         break
@@ -233,25 +240,25 @@ def getgmail(gmailList):
                         num_unread += 1
                         break
 
-                temp_dict['snippet'] = removeBlank(message.get("snippet",''))
-                temp_dict['historyId'] = removeBlank(message.get("historyId",''))
-                temp_dict['internalDate'] = removeBlank(message.get("internalDate",''))
+                temp_dict['snippet'] = removeBlank(message.get("snippet",'_'))
+                temp_dict['historyId'] = removeBlank(message.get("historyId",'_'))
+                temp_dict['internalDate'] = removeBlank(message.get("internalDate",'_'))
 
                 payld = message.get("payload",{})
                 headr = payld.get('headers',{})
                 for one in headr:  # getting the Subject
                     if one.get('name','') == "From":
-                        temp_dict["from"] = removeBlank(one.get('value',''))
+                        temp_dict["from"] = removeBlank(one.get('value','_'))
                     elif one.get('name','') == "To":
-                        temp_dict["to"] = removeBlank(one.get('value',''))
+                        temp_dict["to"] = removeBlank(one.get('value','_'))
                     elif one.get('name','') == 'Cc':
-                        temp_dict['cc'] = removeBlank(one.get('value',''))
+                        temp_dict['cc'] = removeBlank(one.get('value','_'))
                     elif one.get('name','') == 'Bcc':
-                        temp_dict['bcc'] = removeBlank(one.get('value',''))
+                        temp_dict['bcc'] = removeBlank(one.get('value','_'))
                     elif one.get('name','') == 'Subject':
-                        temp_dict['subject'] = removeBlank(one.get('value',''))
+                        temp_dict['subject'] = removeBlank(one.get('value','_'))
                     elif one.get('name','') == 'Date':
-                        msg_date = one.get('value','')
+                        msg_date = one.get('value','_')
                         try:
                             date_parse = parser.parse(msg_date)
                             m_date = date_parse.date()
@@ -264,7 +271,7 @@ def getgmail(gmailList):
                     if parts:
                         filename = ''
                         for par in parts:
-                            filename = filename + par.get('filename','') + ','
+                            filename = filename + removeBlank(par.get('filename','_')) + ','
                         filename = filename.strip(',')
                         if not filename.strip(','):
                             filename = '_'
@@ -280,6 +287,8 @@ def getgmail(gmailList):
                             content = content.replace("_", "/")
                             content = base64.b64decode(bytes(content, 'UTF-8'))
                             content = str(content, 'utf-8')
+                            if content == '':
+                                content = '_'
                             temp_dict['content'] = removeBlank(content)
                     elif body:
                         content = body.get('data','')
@@ -288,6 +297,8 @@ def getgmail(gmailList):
                             content = content.replace("_", "/")
                             content = base64.b64decode(bytes(content, 'UTF-8'))
                             content = str(content, 'utf-8')
+                            if content == '':
+                                content = '_'
                             temp_dict['content'] = removeBlank(content)
                 final_list.append(temp_dict)
 
